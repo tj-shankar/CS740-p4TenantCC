@@ -1,2 +1,4 @@
 # CS740-p4TenantCC
-Adv Computer Networks CS740 Project Work
+Adv Computer Networks CS740 Project Work : Congestion Control in Multi-Tenant Environment using P4 Switches.
+
+P4 switches can track per-flow state.  This enables new congestion control algorithms like XCP and RCP that compute ideal congestion windows for each flow traversing the switch and explicitly communicate this to end-hosts through packet headers.  However, per-flow fairness is often far from ideal. A tenant can gain additional performance by opening up multiple connections.  The goal of this project is to develop new stateful P4 programs that can be used to implement congestion control algorithms that provide congestion control according to a high-level policy.  For example, instead of converging to per-flow fairness, such a new congestion control algorithm could instead provide per-tenant fairness, regardless of the number of active flows from each tenant.
