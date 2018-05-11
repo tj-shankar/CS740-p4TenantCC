@@ -11,7 +11,7 @@ child.expect ('RuntimeCmd: ')
 child.sendline ('show_tables')
 child.expect ('RuntimeCmd: ')
 x = child.before  
-#print x
+
 
 register_name =['pkt_count_reg', 'pkt_length_reg' ,'last_seen','total_last_seen']
 register_values = []
@@ -43,17 +43,16 @@ while 1:
 				child.expect('RuntimeCmd: ')
 				register_value.insert(index, (int(child.before.split()[-1])))
 		
-			#register_values[tenant].append(register_value)
+			
 			print "register_value=",register_value
 			print "last_seen=",register_value[2]
 			print "total_last_seen=",register_value[3]
-			#backoff_priority.insert(tenant, (3*register_value[0]*2*register_value[1])/(10*(cur_time+1 - register_value[2])*5*(register_value[3])))
-                        
+	
 			backoff_priority.insert(tenant, (3*register_value[0]*2*register_value[1])/(10*(register_value[2])))
 			
 			
 		print "after calculation, backoff_priorities are = ",backoff_priority
-		#print "after calculation, backoff_priorities indexs are = ",backoff_priority.keys()
+		
 		for tenant in range(0,3):
                         print "tenant bkof :", tenant
 			print "backoff_priority[tenant] = ",backoff_priority[tenant]
@@ -70,9 +69,7 @@ while 1:
 		print "Total BO needed",(enque_depth - queue_thresh)
 			
 		
-		#child.sendline('register_read congestion_control_rate_reg 0')
-		#child.expect('RuntimeCmd: ')
-		#print(child.before)
+		
 	else:
 		for tenant in range(0,3):
 			child.sendline('register_write congestion_control_rate_reg ' + str(tenant) + ' 0')
