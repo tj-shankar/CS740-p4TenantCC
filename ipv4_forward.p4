@@ -38,25 +38,16 @@ header ipv4_t {
 header tenant_t{
     bit<32> id;
  
-   // following 4 fields can be changed in Egress processing
     bit<32> enq_timestamp;  // 32 bit
-    bit<32> enq_qdepth;     // 19      typecast
+    bit<32> enq_qdepth;     // 19 typecast
     bit<32> deq_timedelta;   // 32
-    bit<32> deq_qdepth;     // 19      typecast
+    bit<32> deq_qdepth;     // 19 typecast
     bit<32> total_pkt_count;
-    //
     bit<32> total_packet_length;
     bit<48> inter_packet_gap;        //type  
     bit<96> total_inter_packet_gap; //tycast
     bit<32> queue_occupancy;
     bit<32> ack_flag;
-   // bit<32> deq_timedelta;
-
-/*    bit<19> deq_qdepth;
-    bit<48> ingress_global_timestamp;
-    bit<48> egress_global_timestamp;
-*/
-
 }
 
 header udp_t {
@@ -113,10 +104,8 @@ parser ParserImpl(packet_in packet,
 
     state parse_udp {
         packet.extract(hdr.udp);
-  //      transition accept;
         transition select(hdr.udp.srcPort){
              default  : parse_tenant;
-        //         0    : accept;
         }
 
     }
@@ -162,11 +151,6 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         ingress_temp_var = ingress_temp_var + 1;
         ingress_pkt_count_reg.write(tenant_index, ingress_temp_var);
 
-     /* CHECK AND REMOVE */
-    //    hdr.udp.checksum = 0xf0f0;
-    //    hdr.tenant.enq_timestamp  =  (qdepth_t)standard_metadata.ingress_global_timestamp ;      
-    //    modify_field(int_q_occu, queueing_metadata.enq_qdepth);
-
     }
     
     table ipv4_lpm {
@@ -199,7 +183,6 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
     register<bit<32>>(256) pkt_length_reg;
     register<bit<48>>(256) last_seen;
     register<bit<96>>(256) total_last_seen;
-//////
     register<bit<32>>(1) enque_depth;
     register<bit<48>>(1) timestamp;
     register<bit<32>>(256) queue_occupancy_reg;
@@ -210,11 +193,11 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
              hdr.tenant.deq_timedelta   = standard_metadata.deq_timedelta   ;
              hdr.tenant.deq_qdepth = (qdepth_t)standard_metadata.deq_qdepth ;
 
-	     bit<32> index = hdr.tenant.id;
-	     bit<32> temp_var;
+	         bit<32> index = hdr.tenant.id;
+	         bit<32> temp_var;
 
-	     //BH enq_depth register code-
-	     enque_depth.write(0,(qdepth_t)standard_metadata.enq_qdepth);
+	         //BH enq_depth register code-
+	         enque_depth.write(0,(qdepth_t)standard_metadata.enq_qdepth);
 
 
              //packet length register code
@@ -233,8 +216,8 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
             hdr.tenant.inter_packet_gap = interval;            
             
 
-	    //BH timestamp register
-	    timestamp.write(0,standard_metadata.ingress_global_timestamp);
+	        //BH timestamp register
+	        timestamp.write(0,standard_metadata.ingress_global_timestamp);
 
 
             //total inter packet gap register code
@@ -248,7 +231,7 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
 
              pkt_count_reg.read(temp_var, index);
              temp_var = temp_var + 1;
-	     pkt_count_reg.write(index, temp_var);
+     	     pkt_count_reg.write(index, temp_var);
              hdr.tenant.total_pkt_count = temp_var;
 
             // compute queue_occupancy with ingress_pkt_count_reg
@@ -259,7 +242,7 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
              temp_diff = temp_ing_var - temp_var;
 
              //BH
-	     queue_occupancy_reg.write(index,temp_diff);
+	         queue_occupancy_reg.write(index,temp_diff);
              if(temp_diff > 0){
                  hdr.tenant.queue_occupancy = temp_diff;
              }

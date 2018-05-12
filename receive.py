@@ -190,13 +190,9 @@ def handle_pkt(pkt):
 
     
 
-#    print "llllllll\n"
-#    data = pkt[Raw].load
-#    print "\n data", data
 
     print "\nHeaders: ", list(expand(pkt))
 
-#    hexdump(pkt)
     sys.stdout.flush()
 
 

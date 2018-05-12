@@ -176,14 +176,6 @@ def handle_pkt(pkt):
         pkt.show2()
         print "ack_flag val :", pkt[tenant].ack_flag
 
-        '''
-        # feedback for every tenant
-        if pkt[tenant].id == 1:
-                global dq1 
-                dq1_wnd = pkt[tenant].ack_flag
-                dq1.clear()
-
-        '''
 
 '''
 Main Func
