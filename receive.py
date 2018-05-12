@@ -53,6 +53,35 @@ ten_dict = {
            }
 
 '''
+'''
+custom packet display func
+'''
+def custom_show(pkt):
+    print "###[ Ethernet ]###"
+    print "  dst    =    ",pkt[Ether].dst
+    print "  src    =    ",pkt[Ether].src
+    print "  type    =    ",pkt[Ether].type
+    print "###[ IP ]###"
+    print "  dst    =    ",pkt[IP].dst
+    print "  src    =    ",pkt[IP].src
+    print "  version    =    ",pkt[IP].version
+    print "###[ UDP ]###"
+    print "  sport    =    ",pkt[UDP].sport
+    print "  dport    =    ",pkt[UDP].dport
+    print "  len    =    ",pkt[UDP].len
+    print "###[ tenant ]###"
+    print "  id    =    ",pkt[tenant].id
+    print "  enq_qdepth    =    ",pkt[tenant].enq_qdepth
+    print "  deq_qdepth    =    ",pkt[tenant].deq_qdepth
+    print "  total_pkt_count    =    ",pkt[tenant].total_pkt_count
+    print "  total_packet_length    =    ",pkt[tenant].total_packet_length
+#    print "  inter_packet_gap    =    ",pkt[tenant].inter_packet_gap
+#    print "  total_packet_gap    =    ",pkt[tenant].total_inter_packet_gap
+#    print "  queue_occupancy    =    ",pkt[tenant].queue_occupancy
+    print "  ack_flag    =    ",pkt[tenant].ack_flag
+    print "###[ Raw ]###"
+    print "  payload    =    ",pkt[Raw].load
+
 
 
 iface = 'h2-eth0'
@@ -154,7 +183,7 @@ def handle_pkt(pkt):
                 send_Custom_pkt(dst, rctenant_id)
     
     #print Recieved packet
-    pkt.show2()
+    custom_show(pkt)
 
 
  
