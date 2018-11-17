@@ -28,35 +28,37 @@ TENANT HEADER
     bit<96> total_inter_packet_gap;
     bit<32> queue_occupancy;
     bit<32> ack_flag
+    bit<32> ecn_flag
 '''
 
 '''
 global vars
 '''
 dq1 = deque()
-dq1_wnd = 2 
+dq1_wnd = 1 
 
 dq2 = deque()
-dq2_wnd = 8
+dq2_wnd = 1
 
 dq3 = deque()
-dq3_wnd = 20
+dq3_wnd = 1
 
 big_count = 0
 
 class tenant(Packet):
     name = "tenant"
     fields_desc = [ IntField("id", 10),
-		    IntField("enq_timestamp",0),
+		    		IntField("enq_timestamp",0),
                     IntField("enq_qdepth",0),
                     IntField("deq_timedelta",0),
                     IntField("deq_qdepth",0),
-		    IntField("total_pkt_count",0),
-		    IntField("total_packet_length",0),
-		    BitField("inter_packet_gap",0x0000000000000,48),
-		    BitField("total_inter_packet_gap",0x00000000000000000000000000,96),
-		    IntField("queue_occupancy",0),
-		    IntField("ack_flag",0)
+		    		IntField("total_pkt_count",0),
+		    		IntField("total_packet_length",0),
+		    		BitField("inter_packet_gap",0x0000000000000,48),
+		    		BitField("total_inter_packet_gap",0x00000000000000000000000000,96),
+		    		IntField("queue_occupancy",0),
+		    		IntField("ack_flag",0)
+		    		IntField("ecn_flag", 0)
                   ]
 
 bind_layers(UDP, tenant, )
@@ -119,6 +121,8 @@ func: to send packets:
 '''
 def send_Custom_pkt():
     global dq1
+    global dq2
+    global dq3
     addr = socket.gethostbyname(sys.argv[1])
     iface = get_if()
     
@@ -176,41 +180,39 @@ def handle_pkt(pkt):
         pkt.show2()
         print "ack_flag val :", pkt[tenant].ack_flag
  
-        
-        # feedback for every tenant
-        if pkt[tenant].id == 0:
+        # ecn field present 
+        if pkt[tenant].ecn_flag == 1:
+        	# feedback for every tenant
+        	if pkt[tenant].id == 0:
                 global dq1 
                 global dq1_wnd
-                dq1_wnd -= pkt[tenant].ack_flag
+                dq1_wnd = dq1_wnd // 2
                 if(dq1_wnd < 1):
                     dq1_wnd = 1
                 #dq1.clear()
 
-        # feedback for every tenant
-        if pkt[tenant].id == 1:
+        	# feedback for every tenant
+        	if pkt[tenant].id == 1:
                 global dq2 
                 global dq2_wnd
-                dq2_wnd -= pkt[tenant].ack_flag
-		if(dq2_wnd < 3):
-                    dq2_wnd = 3
+                dq2_wnd = dq2_wnd // 2
+				if(dq2_wnd < 1):
+                    dq2_wnd = 1
                 #dq1.clear()
 
-        # feedback for every tenant
-        if pkt[tenant].id == 2:
+        	# feedback for every tenant
+        	if pkt[tenant].id == 2:
                 global dq3 
                 global dq3_wnd
-                dq3_wnd -= pkt[tenant].ack_flag
-                if(dq3_wnd < 10):
-                    dq3_wnd = 10
+                dq3_wnd = dq2_wnd // 2
+                if(dq3_wnd < 1):
+                    dq3_wnd = 1
                 #dq1.clear()
-        if(dq1_wnd == 1 and dq2_wnd == 3 and dq3_wnd == 10):
+        if(dq1_wnd == 1 and dq2_wnd == 1 and dq3_wnd == 1):
             global big_count
             big_count += 1
             if(big_count > 10):
-                print "RESETTTTTIIIINNNNNNGGGGGGGG\n"
-                dq1_wnd = 2
-                dq2_wnd = 8
-                dq3_wnd = 20
+                print "Window size not increasing at all\n"
                 big_count = 0        
 
 '''
