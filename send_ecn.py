@@ -180,31 +180,39 @@ def handle_pkt(pkt):
         pkt.show2()
         print "ack_flag val :", pkt[tenant].ack_flag
  
-        # ecn field present 
-        if pkt[tenant].ecn_flag == 1:
-        	# feedback for every tenant
-        	if pkt[tenant].id == 0:
+        
+        # feedback for every tenant
+        if pkt[tenant].id == 0:
                 global dq1 
                 global dq1_wnd
-                dq1_wnd = dq1_wnd // 2
+                if(pkt[tenant].ecn_flag == 1):
+                	dq1_wnd = dq1_wnd // 2
+                else:
+                	dq1_wnd = dq1_wnd + 1
                 if(dq1_wnd < 1):
                     dq1_wnd = 1
                 #dq1.clear()
 
-        	# feedback for every tenant
-        	if pkt[tenant].id == 1:
+        # feedback for every tenant
+        if pkt[tenant].id == 1:
                 global dq2 
                 global dq2_wnd
-                dq2_wnd = dq2_wnd // 2
+                if(pkt[tenant].ecn_flag == 1):
+                	dq2_wnd = dq2_wnd // 2
+                else:
+                	dq2_wnd = dq2_wnd + 1
 				if(dq2_wnd < 1):
                     dq2_wnd = 1
                 #dq1.clear()
 
-        	# feedback for every tenant
-        	if pkt[tenant].id == 2:
+        # feedback for every tenant
+        if pkt[tenant].id == 2:
                 global dq3 
                 global dq3_wnd
-                dq3_wnd = dq2_wnd // 2
+                if(pkt[tenant].ecn_flag == 1):
+                	dq3_wnd = dq3_wnd // 2
+                else:
+                	dq3_wnd = dq3_wnd + 1
                 if(dq3_wnd < 1):
                     dq3_wnd = 1
                 #dq1.clear()
@@ -213,6 +221,9 @@ def handle_pkt(pkt):
             big_count += 1
             if(big_count > 10):
                 print "Window size not increasing at all\n"
+                dq1_wnd = 1
+                dq2_wnd = 1
+                dq3_wnd = 1
                 big_count = 0        
 
 '''
