@@ -21,9 +21,7 @@ import struct
 
 '''
 TENANT HEADER
-
     bit<32> id;
-
     bit<32> enq_timestamp;  // 32 bit
     bit<32> enq_qdepth;     // 19      typecast
     bit<32>deq_timedelta;   // 32
@@ -33,25 +31,21 @@ TENANT HEADER
     bit<96> total_inter_packet_gap;
     bit<32> queue_occupancy;
     bit<32> ack_flag;
+    bit<32> ecn_flag;
 '''
 
 '''
-
 tenant dictionary:
-
 ten_dict = {
               rctenant_id1 : {
                                   host SRC_IP1 :  Packet Count
                                   host SRC_IP2 :  Packet Count
                              }
-
               rctenant_id2 : {
                                   host SRC_IP1 :  Packet Count
                                   host SRC_IP2 :  Packet Count
                              }
-
            }
-
 '''
 '''
 custom packet display func
@@ -79,6 +73,7 @@ def custom_show(pkt):
 #    print "  total_packet_gap    =    ",pkt[tenant].total_inter_packet_gap
 #    print "  queue_occupancy    =    ",pkt[tenant].queue_occupancy
     print "  ack_flag    =    ",pkt[tenant].ack_flag
+    print "  ecn_flag    =    ",pkt[tenant].ecn_flag
     print "###[ Raw ]###"
     print "  payload    =    ",pkt[Raw].load
 
@@ -88,19 +83,22 @@ iface = 'h2-eth0'
 pkt_count = 0
 ten_dict = {}
 
+ecn_set_flag = 0
+
 class tenant(Packet):
     name = "tenant"
     fields_desc = [ IntField("id", 10),
-		    IntField("enq_timestamp",0),
+                    IntField("enq_timestamp",0),
                     IntField("enq_qdepth",0),
                     IntField("deq_timedelta",0),
                     IntField("deq_qdepth",0),
-		    IntField("total_pkt_count",0),
-		    IntField("total_packet_length",0),
-		    BitField("inter_packet_gap",0x0000000000000,48),
-		    BitField("total_inter_packet_gap",0x00000000000000000000000000,96),
-		    IntField("queue_occupancy",0),
-		    IntField("ack_flag",0)
+                    IntField("total_pkt_count",0),
+                    IntField("total_packet_length",0),
+                    BitField("inter_packet_gap",0x0000000000000,48),
+                    BitField("total_inter_packet_gap",0x00000000000000000000000000,96),
+                    IntField("queue_occupancy",0),
+                    IntField("ack_flag",0)
+                    IntField("ecn_flag",0)
                   ]
 
 bind_layers(UDP, tenant, )
@@ -148,8 +146,8 @@ def send_Custom_pkt(dstaddr, t_id):
     addr = socket.gethostbyname(dstaddr)
     iface = get_if()
 
-    
-    pkt =  Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff') /IP(dst=dstaddr) / UDP(dport=5321, sport=1235) / tenant(id=t_id, ack_flag=999) / "ACK"
+    global ecn_set_flag    
+    pkt =  Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff') /IP(dst=dstaddr) / UDP(dport=5321, sport=1235) / tenant(id=t_id, ack_flag=999, ecn_flag = ecn_set_flag) / "ACK"
     #pkt.show2()
     sendp(pkt, iface=iface, verbose=False)
 
@@ -163,6 +161,16 @@ def expand(x):
 def handle_pkt(pkt):
     print "got a packet"
     global pkt_count 
+
+    #TODO: Place holder to handle packet comming from controller 
+    #if(packet from controller):
+        #global ecn_set_flag
+        #ecn_set_flag = 1
+        #print Recieved packet
+        #custom_show(pkt)
+        #return
+
+    #TODO: Also have to design a mechanism to reset the ecn_set_flag
 
     pkt_count = pkt_count + 1
     rctenant_id = pkt[tenant].id
@@ -179,8 +187,8 @@ def handle_pkt(pkt):
         else:    
             ten_dict[rctenant_id][dst] = ten_dict[rctenant_id][dst] + 1
 
-            if(ten_dict[rctenant_id][dst] % 10 == 0):
-                send_Custom_pkt(dst, rctenant_id)
+    
+    send_Custom_pkt(dst, rctenant_id)
     
     #print Recieved packet
     custom_show(pkt)
